@@ -1,5 +1,5 @@
 
-import jailbreaking_llms.common
+from jailbreaking_llms import common
 from jailbreaking_llms.language_models import GPT, Claude, PaLM, HuggingFace
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
