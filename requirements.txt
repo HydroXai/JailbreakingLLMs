@@ -6,7 +6,9 @@ numpy
 matplotlib
 pandas
 seaborn
+torch
 transformers
+wandb
 anthropic
 google-generativeai
 openai==0.28.0
