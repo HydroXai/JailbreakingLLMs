@@ -3,11 +3,11 @@
 import fire
 
 # Local application/library specific imports
-from system_prompts import get_attacker_system_prompt
-from loggers import WandBLogger
-from judges import load_judge
-from conversers import load_attack_and_target_models
-from common import process_target_response, get_init_msg, conv_template
+from jailbreaking_llms.system_prompts import get_attacker_system_prompt
+from jailbreaking_llms.loggers import WandBLogger
+from jailbreaking_llms.judges import load_judge
+from jailbreaking_llms.conversers import load_attack_and_target_models
+from jailbreaking_llms.common import process_target_response, get_init_msg, conv_template
 
 def run(
     attack_model: str,

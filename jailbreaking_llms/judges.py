@@ -4,11 +4,11 @@ from fastchat.model import (
 import re
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
-from system_prompts import get_judge_system_prompt
+from jailbreaking_llms.system_prompts import get_judge_system_prompt
 
-from language_models import GPT
-from conversers import load_indiv_model
-from common import conv_template
+from jailbreaking_llms.language_models import GPT
+from jailbreaking_llms.conversers import load_indiv_model
+from jailbreaking_llms.common import conv_template
 
 def load_judge(judge_max_n_tokens: int, judge_temperature: int, judge_model: str, goal: str, target_str: str):
     if "gpt" in judge_model:

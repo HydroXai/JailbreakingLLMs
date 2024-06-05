@@ -3,7 +3,7 @@ import common
 from language_models import GPT, Claude, PaLM, HuggingFace
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
-from config import (VICUNA_PATH, LLAMA_PATH, ATTACK_TEMP, TARGET_TEMP, ATTACK_TOP_P, TARGET_TOP_P,
+from jailbreaking_llms.config import (VICUNA_PATH, LLAMA_PATH, ATTACK_TEMP, TARGET_TEMP, ATTACK_TOP_P, TARGET_TOP_P,
                     LLAMA_7B_PATH, LLAMA_13B_PATH, LLAMA_70B_PATH, GEMMA_2B_PATH, GEMMA_7B_PATH,
                     MISTRAL_7B_PATH, MIXTRAL_7B_PATH, R2D2_PATH, LLAMA3_8B_PATH, LLAMA3_70B_PATH)
 
