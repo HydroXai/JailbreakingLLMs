@@ -1,6 +1,6 @@
 
-import common
-from language_models import GPT, Claude, PaLM, HuggingFace
+import jailbreaking_llms.common
+from jailbreaking_llms.language_models import GPT, Claude, PaLM, HuggingFace
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from jailbreaking_llms.config import (VICUNA_PATH, LLAMA_PATH, ATTACK_TEMP, TARGET_TEMP, ATTACK_TOP_P, TARGET_TOP_P,
