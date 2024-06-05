@@ -1,0 +1,12 @@
+datasets
+evaluate
+fire
+fschat==0.0.32
+numpy
+matplotlib
+pandas
+seaborn
+transformers
+anthropic
+google-generativeai
+openai==0.28.0
