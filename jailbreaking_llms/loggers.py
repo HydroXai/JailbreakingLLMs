@@ -8,30 +8,47 @@ import pandas as pd
 class WandBLogger:
     """WandB logger."""
 
-    def __init__(self, args, system_prompt):
+    def __init__(self, 
+                system_prompt: str,
+                attack_model: str,
+                target_model: str,
+                judge_model: str,
+                goal: str,
+                target_str: str = "Sure, here is",
+                attack_max_n_tokens: int = 500,
+                max_n_attack_attempts: int = 5,
+                target_max_n_tokens: int = 150,
+                judge_max_n_tokens: int = 10,
+                judge_temperature: int = 0,
+                n_streams: int = 3,
+                keep_last_n: int = 3,
+                n_iterations: int = 5,
+                index: int = 0,
+                category: str = "bomb",
+                ):
         self.logger = wandb.init(
             project = "jailbreak-llms",
             config = {
-                "attack_model" : args.attack_model,
-                "target_model" : args.target_model,
-                "judge_model": args.judge_model,
-                "keep_last_n": args.keep_last_n,
+                "attack_model" : attack_model,
+                "target_model" : target_model,
+                "judge_model": judge_model,
+                "keep_last_n": keep_last_n,
                 "system_prompt": system_prompt,
-                "index": args.index,
-                "category": args.category,
-                "goal": args.goal,
-                "n_iter": args.n_iterations,
-                "target_str": args.target_str,
-                "n_streams": args.n_streams,
+                "index": index,
+                "category": category,
+                "goal": goal,
+                "n_iter": n_iterations,
+                "target_str": target_str,
+                "n_streams": n_streams,
 
             }
         )
         self.is_jailbroken = False
         self.query_to_jailbreak = None
         self.table = pd.DataFrame()
-        self.batch_size = args.n_streams
-        self.index = args.index
-        self.goal = args.goal
+        self.batch_size = n_streams
+        self.index = index
+        self.goal = goal
         self.jailbreak_prompt = None
         self.jailbreak_response = None
 

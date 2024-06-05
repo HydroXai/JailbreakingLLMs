@@ -24,6 +24,8 @@ class HuggingFace(LanguageModel):
         self.model = model 
         self.tokenizer = tokenizer
         self.eos_token_ids = [self.tokenizer.eos_token_id]
+        if 'llama3' in self.model_name.lower() or 'llama-3' in self.model_name.lower():
+            self.eos_token_ids.append(self.tokenizer.convert_tokens_to_ids("<|eot_id|>"))
 
     def batched_generate(self, 
                         full_prompts_list,
@@ -49,6 +51,7 @@ class HuggingFace(LanguageModel):
                 max_new_tokens=max_n_tokens, 
                 do_sample=False,
                 eos_token_id=self.eos_token_ids,
+                pad_token_id=self.tokenizer.pad_token_id,  # added for Mistral
                 top_p=1,
                 temperature=1, # To prevent warning messages
             )
@@ -155,12 +158,10 @@ class Claude():
         output = self.API_ERROR_OUTPUT
         for _ in range(self.API_MAX_RETRY):
             try:
-                completion = self.model.completions.create(
+                completion = self.model.messages.create(
                     model=self.model_name,
-                    max_tokens_to_sample=max_n_tokens,
-                    prompt=conv,
-                    temperature=temperature,
-                    top_p=top_p
+                    max_tokens=max_n_tokens,
+                    messages=[conv],
                 )
                 output = completion.completion
                 break
