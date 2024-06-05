@@ -1,7 +1,7 @@
 datasets
 evaluate
 fire
-fschat==0.0.32
+fschat==0.2.32
 numpy
 matplotlib
 pandas
