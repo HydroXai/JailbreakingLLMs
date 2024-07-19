@@ -1,6 +1,6 @@
 
 from jailbreaking_llms import common
-from jailbreaking_llms.language_models import GPT, Claude, PaLM, HuggingFace
+from jailbreaking_llms.language_models import GPT, Claude, PaLM, HuggingFace, GeminiPro
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 from jailbreaking_llms.config import (VICUNA_PATH, LLAMA_PATH, ATTACK_TEMP, TARGET_TEMP, ATTACK_TOP_P, TARGET_TOP_P,
@@ -167,7 +167,7 @@ class TargetLM():
                 if "gpt" in self.model_name:
                     # Openai does not have separators
                     full_prompts.append(conv.to_openai_api_messages())
-                elif "palm" in self.model_name:
+                elif "palm" in self.model_name or "gemini" in self.model_name:
                     full_prompts.append(conv.messages[-1][1])
                 # older models
                 elif "vicuna" in self.model_name or "llama2" in self.model_name or "llama-2" in self.model_name.lower():
@@ -198,6 +198,8 @@ def load_indiv_model(model_name, device=None):
         lm = GPT(model_name)
     elif 'claude' in model_name:
         lm = Claude(model_name)
+    elif 'gemini' in model_name:
+        lm = GeminiPro(model_name)
     elif model_name in ["palm-2"]:
         lm = PaLM(model_name)
     else:
@@ -245,6 +247,14 @@ def get_model_path_and_template(model_name):
         },
         "gpt-4-turbo":{
             "path":"gpt-4-turbo",
+            "template":"gpt-4"
+        },
+        "gpt-4o-2024-05-13":{
+            "path":"gpt-4o-2024-05-13",
+            "template":"gpt-4"
+        },
+        "gpt-4o-mini-2024-07-18":{
+            "path":"gpt-4o-mini-2024-07-18",
             "template":"gpt-4"
         },
         "gpt-3.5-turbo": {
@@ -326,6 +336,14 @@ def get_model_path_and_template(model_name):
         "claude-3-opus-20240229":{
             "path":"claude-3-opus-20240229",
             "template":"claude-3-opus-20240229"
+        },
+        "gemini-pro": {
+            "path": "gemini-pro",
+            "template": "gemini-pro"
+        },
+        "gemini-1.5-pro": {
+            "path": "gemini-1.5-pro",
+            "template": "gemini-1.5-pro"
         },
         "/media/d1/huggingface.co/models/meta-llama/Llama-2-7b-chat-hf":{
             "path":"/media/d1/huggingface.co/models/meta-llama/Llama-2-7b-chat-hf",
