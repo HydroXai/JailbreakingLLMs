@@ -2,10 +2,19 @@
 from jailbreaking_llms import common
 from jailbreaking_llms.language_models import GPT, Claude, PaLM, HuggingFace, GeminiPro
 import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 from jailbreaking_llms.config import (VICUNA_PATH, LLAMA_PATH, ATTACK_TEMP, TARGET_TEMP, ATTACK_TOP_P, TARGET_TOP_P,
                     LLAMA_7B_PATH, LLAMA_13B_PATH, LLAMA_70B_PATH, GEMMA_2B_PATH, GEMMA_7B_PATH,
                     MISTRAL_7B_PATH, MIXTRAL_7B_PATH, R2D2_PATH, LLAMA3_8B_PATH, LLAMA3_70B_PATH)
+from accelerate import Accelerator
+
+
+accelerator = Accelerator()
+quantization_config = BitsAndBytesConfig(
+    load_in_8Bit=True,
+    bnb_8bit_compute_dtype=torch.bfloat16
+)
+
 
 def load_attack_and_target_models(attack_model: str, attack_max_n_tokens: int, max_n_attack_attempts: int, target_model: str, target_max_n_tokens: int):
     # Load attack model and tokenizer
@@ -85,8 +94,9 @@ class AttackLM():
                 full_prompts.append(conv.to_openai_api_messages())
             else:
                 conv.append_message(conv.roles[1], init_message)
-                full_prompts.append(conv.get_prompt()[:-len(conv.sep2)])
-            
+                p = conv.get_prompt()
+                full_prompts.append(p[:-len(conv.sep2)] if conv.sep2 is not None else p)
+
         for attempt in range(self.max_n_attack_attempts):
             # Subset conversations based on indices to regenerate
             full_prompts_subset = [full_prompts[i] for i in indices_to_regenerate]
@@ -121,7 +131,7 @@ class AttackLM():
                 break
         
         if any([output for output in valid_outputs if output is None]):
-            print(f"Failed to generate output after {self.max_n_attack_attempts} attempts. Terminating.")
+            raise f"Failed to generate output after {self.max_n_attack_attempts} attempts. Terminating."
         return valid_outputs
 
 class TargetLM():
@@ -206,13 +216,14 @@ def load_indiv_model(model_name, device=None):
         model = AutoModelForCausalLM.from_pretrained(
                 model_path, 
                 torch_dtype=torch.float16,
-                low_cpu_mem_usage=True,
-                device_map="auto").eval()
+                # low_cpu_mem_usage=True,
+                quantization_config=quantization_config,
+                device_map="auto")#.eval()
 
         tokenizer = AutoTokenizer.from_pretrained(
             model_path,
-            use_fast=False
-        ) 
+            padding_side='left',
+        )
 
         if 'llama-2' in model_path.lower():
             tokenizer.pad_token = tokenizer.unk_token
@@ -345,25 +356,13 @@ def get_model_path_and_template(model_name):
             "path": "gemini-1.5-pro",
             "template": "gemini-1.5-pro"
         },
-        "/media/d1/huggingface.co/models/meta-llama/Llama-2-7b-chat-hf":{
-            "path":"/media/d1/huggingface.co/models/meta-llama/Llama-2-7b-chat-hf",
-            "template":"llama-2"
-        },
-        "/media/d1/huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2":{
-            "path":"/media/d1/huggingface.co/models/mistralai/Mistral-7B-Instruct-v0.2",
-            "template":"mistral"
-        },
         "/media/d1/huggingface.co/models/meta-llama/Meta-Llama-3-8B-Instruct":{
             "path":"/media/d1/huggingface.co/models/meta-llama/Meta-Llama-3-8B-Instruct",
-            "template":"llama-2"
+            "template":"llama-3"
         },
-        "/media/d1/huggingface.co/models/HuggingFaceM4/tiny-random-LlamaForCausalLM":{
-            "path":"media/d1/huggingface.co/models/HuggingFaceM4/tiny-random-LlamaForCausalLM",
-            "template":"llama-2"
-        },
-        "/media/d1/huggingface.co/models/meta-llama/LlamaGuard-7b":{
-            "path":"/media/d1/huggingface.co/models/meta-llama/LlamaGuard-7b",
-            "template":"llama-2"
+        "/media/d1/huggingface.co/models/huihui-ai/Llama-3.1-Tulu-3-8B-abliterated": {
+            "path": "/media/d1/huggingface.co/models/huihui-ai/Llama-3.1-Tulu-3-8B-abliterated",
+            "template": "llama-3"
         }
     }
     path, template = full_model_dict[model_name]["path"], full_model_dict[model_name]["template"]

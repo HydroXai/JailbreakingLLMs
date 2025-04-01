@@ -2,13 +2,22 @@ from fastchat.model import (
     get_conversation_template
 )
 import re
-from transformers import AutoTokenizer, AutoModelForCausalLM
 import torch
-from jailbreaking_llms.system_prompts import get_judge_system_prompt
 
+from accelerate import Accelerator
+from jailbreaking_llms.system_prompts import get_judge_system_prompt
 from jailbreaking_llms.language_models import GPT
 from jailbreaking_llms.conversers import load_indiv_model
 from jailbreaking_llms.common import conv_template
+from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
+
+
+accelerator = Accelerator()
+quantization_config = BitsAndBytesConfig(
+    load_in_8Bit=True,
+    bnb_8bit_compute_dtype=torch.bfloat16
+)
+
 
 def load_judge(judge_max_n_tokens: int, judge_temperature: int, judge_model: str, goal: str, target_str: str):
     if "gpt" in judge_model:
@@ -17,9 +26,9 @@ def load_judge(judge_max_n_tokens: int, judge_temperature: int, judge_model: str
         return NoJudge(judge_max_n_tokens, judge_temperature, judge_model, goal, target_str)
     elif judge_model == "refuse-judge":
         return RefuseJudge(judge_max_n_tokens, judge_temperature, judge_model, goal, target_str)
-    elif "llamaguard" in judge_model.lower():
-        tokenizer = AutoTokenizer.from_pretrained(judge_model)
-        model = AutoModelForCausalLM.from_pretrained(judge_model, torch_dtype=torch.bfloat16, device_map="auto")
+    elif "llamaguard" in judge_model.lower() or "llama-guard" in judge_model.lower():
+        tokenizer = AutoTokenizer.from_pretrained(judge_model, padding_side='left')
+        model = AutoModelForCausalLM.from_pretrained(judge_model, torch_dtype=torch.bfloat16, device_map="auto", quantization_config=quantization_config)
         return LlamaGuardJudge(judge_max_n_tokens, judge_temperature, judge_model, goal, target_str, tokenizer, model)
     else:
         model, template = load_indiv_model(judge_model)
@@ -209,7 +218,7 @@ class LlamaGuardJudge(JudgeBase):
         self.judge_model = model
 
     def moderate(self, conv):
-        input_ids = self.tokenizer.apply_chat_template(conv, return_tensors="pt")
+        input_ids = self.tokenizer.apply_chat_template(conv, return_tensors="pt").to(self.judge_model.device)
         output = self.judge_model.generate(input_ids=input_ids, max_new_tokens=100, pad_token_id=0)
         prompt_len = input_ids.shape[-1]
         return self.tokenizer.decode(output[0][prompt_len:], skip_special_tokens=True)

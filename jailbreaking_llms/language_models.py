@@ -43,6 +43,7 @@ class HuggingFace(LanguageModel):
                 do_sample=True,
                 temperature=temperature,
                 eos_token_id=self.eos_token_ids,
+                pad_token_id=self.tokenizer.eos_token_id,
                 top_p=top_p,
             )
         else:
